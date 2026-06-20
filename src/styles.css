@@ -4,28 +4,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -45,100 +28,100 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Institucional UJBM */
+  --color-ujbm-blue: var(--ujbm-blue);
+  --color-ujbm-blue-dark: var(--ujbm-blue-dark);
+  --color-ujbm-red: var(--ujbm-red);
+  --color-ujbm-gold: var(--ujbm-gold);
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
-  --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.208 0.042 265.755);
-  --muted: oklch(0.968 0.007 247.896);
-  --muted-foreground: oklch(0.554 0.046 257.417);
-  --accent: oklch(0.968 0.007 247.896);
-  --accent-foreground: oklch(0.208 0.042 265.755);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(0.929 0.013 255.508);
-  --input: oklch(0.929 0.013 255.508);
-  --ring: oklch(0.704 0.04 256.788);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
+  --radius: 0.75rem;
 
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
+  /* Identidad UJBM */
+  --ujbm-blue: oklch(0.42 0.16 260);
+  --ujbm-blue-dark: oklch(0.32 0.14 262);
+  --ujbm-red: oklch(0.55 0.22 25);
+  --ujbm-gold: oklch(0.78 0.13 80);
+
+  --background: oklch(0.99 0.005 250);
+  --foreground: oklch(0.18 0.03 260);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.03 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.03 260);
+  --primary: var(--ujbm-blue);
+  --primary-foreground: oklch(0.99 0.003 250);
+  --secondary: oklch(0.96 0.01 250);
+  --secondary-foreground: oklch(0.22 0.04 260);
+  --muted: oklch(0.96 0.01 250);
+  --muted-foreground: oklch(0.50 0.03 260);
+  --accent: oklch(0.95 0.02 260);
+  --accent-foreground: var(--ujbm-blue-dark);
+  --destructive: var(--ujbm-red);
+  --destructive-foreground: oklch(0.99 0.003 250);
+  --border: oklch(0.90 0.012 255);
+  --input: oklch(0.92 0.012 255);
+  --ring: var(--ujbm-blue);
 }
 
 @layer base {
-  * {
-    border-color: var(--color-border);
-  }
-
+  * { border-color: var(--color-border); }
+  html, body { background-color: var(--color-background); color: var(--color-foreground); }
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
   }
+  h1, h2, h3, h4 { font-family: Georgia, "Times New Roman", serif; letter-spacing: -0.01em; }
+}
+
+/* Tarjeta institucional con borde superior rojo */
+.ujbm-card {
+  background-color: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  border-top: 4px solid var(--ujbm-red);
+  box-shadow: 0 2px 4px -2px rgb(0 0 0 / 0.06), 0 8px 24px -12px rgb(0 0 0 / 0.10);
+}
+
+.ujbm-gold-line {
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--ujbm-gold), transparent);
+}
+
+.ujbm-banner-overlay {
+  background: linear-gradient(120deg,
+    color-mix(in oklab, var(--ujbm-blue) 88%, transparent) 0%,
+    color-mix(in oklab, var(--ujbm-blue-dark) 80%, transparent) 55%,
+    color-mix(in oklab, var(--ujbm-red) 70%, transparent) 100%);
+}
+
+.ujbm-bg-fade::before {
+  content: "";
+  position: fixed; inset: 0;
+  background: rgb(255 255 255 / 0.88);
+  z-index: -1;
+}
+.ujbm-bg-fade {
+  position: relative;
+  background-image: var(--bg-img);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+/* Botón escala 1-5 */
+.scale-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 44px; min-width: 44px; padding: 0 0.5rem;
+  border-radius: 0.5rem; border: 1px solid var(--border);
+  background: var(--card); color: var(--foreground);
+  font-weight: 600; font-size: 0.95rem;
+  transition: all 0.15s ease;
+}
+.scale-btn:hover { border-color: var(--ujbm-blue); color: var(--ujbm-blue); }
+.scale-btn[data-selected="true"] {
+  background: var(--ujbm-blue); color: white; border-color: var(--ujbm-blue);
+  box-shadow: 0 4px 12px -4px color-mix(in oklab, var(--ujbm-blue) 50%, transparent);
 }
