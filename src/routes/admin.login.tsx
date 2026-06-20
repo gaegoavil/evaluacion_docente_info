@@ -17,21 +17,46 @@ function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) navigate({ to: "/admin/dashboard" });
-    });
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const email = data.session?.user?.email?.toLowerCase();
+      if (!email) return;
+      const { data: admin } = await supabase.from("admins").select("email").eq("email", email).maybeSingle();
+      if (admin) navigate({ to: "/admin/dashboard" });
+      else await supabase.auth.signOut();
+    })();
   }, [navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) {
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
+
+    if (error || !data.user?.email) {
+      setLoading(false);
       setError("Contraseña incorrecta. Inténtalo nuevamente.");
       return;
     }
+
+    const { data: admin, error: adminError } = await supabase
+      .from("admins")
+      .select("email")
+      .eq("email", data.user.email.toLowerCase())
+      .maybeSingle();
+
+    setLoading(false);
+
+    if (adminError || !admin) {
+      await supabase.auth.signOut();
+      setError("No tienes permisos de administrador.");
+      return;
+    }
+
     navigate({ to: "/admin/dashboard" });
   }
 

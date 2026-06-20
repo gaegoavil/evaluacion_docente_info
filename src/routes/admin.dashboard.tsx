@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { InstitutionalHeader } from "@/components/InstitutionalHeader";
 import { supabase } from "@/lib/supabase";
-import { LogOut, Download } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Download, LogOut } from "lucide-react";
 
 export const Route = createFileRoute("/admin/dashboard")({
   head: () => ({ meta: [{ title: "Panel administrador — UJBM" }] }),
@@ -23,11 +23,39 @@ type Row = {
   comentarios: { aspecto_positivo: string | null; aspecto_mejora: string | null; sugerencia_adicional: string | null }[];
 };
 
+type CatalogCounts = {
+  periodos: number;
+  escuelas: number;
+  modalidades: number;
+  cursos: number;
+  docentes: number;
+  docente_escuela: number;
+  preguntas: number;
+  encuestas: number;
+  respuestas: number;
+  comentarios: number;
+};
+
+const EMPTY_COUNTS: CatalogCounts = {
+  periodos: 0,
+  escuelas: 0,
+  modalidades: 0,
+  cursos: 0,
+  docentes: 0,
+  docente_escuela: 0,
+  preguntas: 0,
+  encuestas: 0,
+  respuestas: 0,
+  comentarios: 0,
+};
+
 function AdminDashboardPage() {
   const navigate = useNavigate();
   const [checking, setChecking] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [catalogCounts, setCatalogCounts] = useState<CatalogCounts>(EMPTY_COUNTS);
+  const [catalogError, setCatalogError] = useState("");
 
   // Filtros
   const [fEscuela, setFEscuela] = useState("");
@@ -35,20 +63,47 @@ function AdminDashboardPage() {
   const [fCiclo, setFCiclo] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      const session = data.session;
+
+      if (!session?.user?.email) {
         navigate({ to: "/admin/login" });
-      } else {
-        setChecking(false);
+        return;
       }
-    });
+
+      const { data: admin, error } = await supabase
+        .from("admins")
+        .select("email")
+        .eq("email", session.user.email.toLowerCase())
+        .maybeSingle();
+
+      if (error || !admin) {
+        await supabase.auth.signOut();
+        navigate({ to: "/admin/login" });
+        return;
+      }
+
+      setChecking(false);
+    })();
   }, [navigate]);
 
   useEffect(() => {
     if (checking) return;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      setCatalogError("");
+
+      try {
+        const counts = await loadCatalogCounts();
+        setCatalogCounts(counts);
+      } catch (e) {
+        setCatalogError("No se pudo verificar el estado de catálogos. Revisa que todas las tablas existan en Supabase.");
+        // eslint-disable-next-line no-console
+        console.error(e);
+      }
+
+      const { data, error } = await supabase
         .from("encuestas")
         .select(`
           id, created_at, ciclo, docente_otro,
@@ -62,7 +117,15 @@ function AdminDashboardPage() {
         `)
         .order("created_at", { ascending: false })
         .limit(2000);
-      setRows((data as unknown as Row[]) ?? []);
+
+      if (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+        setRows([]);
+      } else {
+        setRows((data as unknown as Row[]) ?? []);
+      }
+
       setLoading(false);
     })();
   }, [checking]);
@@ -86,20 +149,24 @@ function AdminDashboardPage() {
       cursos.add(r.cursos?.nombre || "—");
     });
 
-    // por docente
     const byDoc: Record<string, number[]> = {};
     filtered.forEach((r) => {
       const n = r.docentes?.nombres || r.docente_otro || "—";
       byDoc[n] = byDoc[n] || [];
       r.respuestas.forEach((x) => byDoc[n].push(x.valor));
     });
+
     const promDoc = Object.entries(byDoc).map(([nombre, v]) => ({
-      nombre, promedio: v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0, n: v.length,
+      nombre,
+      promedio: v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0,
+      n: v.length,
     })).sort((a, b) => b.promedio - a.promedio);
 
     return {
-      total, promedio,
-      totalDocentes: docentes.size, totalCursos: cursos.size,
+      total,
+      promedio,
+      totalDocentes: docentes.size,
+      totalCursos: cursos.size,
       promDoc,
     };
   }, [filtered]);
@@ -107,6 +174,15 @@ function AdminDashboardPage() {
   const escuelasOpts = Array.from(new Set(rows.map((r) => r.escuelas?.nombre).filter(Boolean))) as string[];
   const modOpts = Array.from(new Set(rows.map((r) => r.modalidades?.nombre).filter(Boolean))) as string[];
   const cicloOpts = Array.from(new Set(rows.map((r) => r.ciclo).filter(Boolean))).sort();
+
+  const faltanCatalogos =
+    catalogCounts.periodos === 0 ||
+    catalogCounts.escuelas === 0 ||
+    catalogCounts.modalidades === 0 ||
+    catalogCounts.cursos === 0 ||
+    catalogCounts.docentes === 0 ||
+    catalogCounts.docente_escuela === 0 ||
+    catalogCounts.preguntas === 0;
 
   async function handleLogout() {
     await supabase.auth.signOut();
@@ -162,6 +238,28 @@ function AdminDashboardPage() {
           </div>
         </div>
 
+        <div
+          className="ujbm-card p-4 flex items-start gap-3"
+          style={{ borderTopColor: faltanCatalogos ? "#d97706" : "#15803d" }}
+        >
+          {faltanCatalogos ? (
+            <AlertTriangle className="h-5 w-5 mt-0.5 text-amber-600" />
+          ) : (
+            <CheckCircle2 className="h-5 w-5 mt-0.5 text-green-700" />
+          )}
+          <div>
+            <p className="font-semibold" style={{ color: "var(--ujbm-blue-dark)" }}>
+              {faltanCatalogos ? "Faltan cursos o docentes por cargar." : "Catálogos listos."}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {faltanCatalogos
+                ? "La encuesta no estará completa hasta registrar estos catálogos."
+                : "La encuesta está preparada para recibir respuestas."}
+            </p>
+            {catalogError && <p className="text-sm mt-2" style={{ color: "var(--ujbm-red)" }}>{catalogError}</p>}
+          </div>
+        </div>
+
         {/* KPIs */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Kpi label="Total de respuestas" value={stats.total.toString()} />
@@ -169,6 +267,23 @@ function AdminDashboardPage() {
           <Kpi label="Docentes evaluados" value={stats.totalDocentes.toString()} />
           <Kpi label="Cursos evaluados" value={stats.totalCursos.toString()} />
         </div>
+
+        {/* Estado de catálogos */}
+        <section className="ujbm-card p-5">
+          <h3 className="text-lg font-semibold mb-4" style={{ color: "var(--ujbm-blue-dark)" }}>Estado de catálogos</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <CatalogKpi label="Periodos cargados" value={catalogCounts.periodos} required />
+            <CatalogKpi label="Escuelas cargadas" value={catalogCounts.escuelas} required />
+            <CatalogKpi label="Modalidades cargadas" value={catalogCounts.modalidades} required />
+            <CatalogKpi label="Cursos cargados" value={catalogCounts.cursos} required />
+            <CatalogKpi label="Docentes cargados" value={catalogCounts.docentes} required />
+            <CatalogKpi label="Relaciones docente-escuela" value={catalogCounts.docente_escuela} required />
+            <CatalogKpi label="Preguntas cargadas" value={catalogCounts.preguntas} required />
+            <CatalogKpi label="Encuestas registradas" value={catalogCounts.encuestas} />
+            <CatalogKpi label="Respuestas guardadas" value={catalogCounts.respuestas} />
+            <CatalogKpi label="Comentarios guardados" value={catalogCounts.comentarios} />
+          </div>
+        </section>
 
         {/* Filtros */}
         <div className="ujbm-card p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -254,11 +369,58 @@ function AdminDashboardPage() {
   );
 }
 
+async function countTable(table: string) {
+  const { count, error } = await supabase.from(table).select("*", { count: "exact", head: true });
+  if (error) throw error;
+  return count ?? 0;
+}
+
+async function loadCatalogCounts(): Promise<CatalogCounts> {
+  const [periodos, escuelas, modalidades, cursos, docentes, docenteEscuela, preguntas, encuestas, respuestas, comentarios] = await Promise.all([
+    countTable("periodos"),
+    countTable("escuelas"),
+    countTable("modalidades"),
+    countTable("cursos"),
+    countTable("docentes"),
+    countTable("docente_escuela"),
+    countTable("preguntas"),
+    countTable("encuestas"),
+    countTable("respuestas"),
+    countTable("comentarios"),
+  ]);
+
+  return {
+    periodos,
+    escuelas,
+    modalidades,
+    cursos,
+    docentes,
+    docente_escuela: docenteEscuela,
+    preguntas,
+    encuestas,
+    respuestas,
+    comentarios,
+  };
+}
+
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="ujbm-card p-4">
       <p className="text-xs text-muted-foreground uppercase tracking-wider">{label}</p>
       <p className="mt-2 text-3xl font-bold" style={{ color: "var(--ujbm-blue-dark)" }}>{value}</p>
+    </div>
+  );
+}
+
+function CatalogKpi({ label, value, required = false }: { label: string; value: number; required?: boolean }) {
+  const ok = !required || value > 0;
+  return (
+    <div className={`rounded-lg border p-3 bg-white ${ok ? "border-border" : "border-amber-300"}`}>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-bold" style={{ color: ok ? "var(--ujbm-blue-dark)" : "#b45309" }}>{value}</p>
+      <p className="mt-1 text-[11px] font-medium" style={{ color: ok ? "#15803d" : "#b45309" }}>
+        {ok ? "Correcto" : "Pendiente de carga"}
+      </p>
     </div>
   );
 }

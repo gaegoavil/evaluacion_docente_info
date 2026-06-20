@@ -36,6 +36,8 @@ function EncuestaPage() {
   const [cursos, setCursos] = useState<Catalogo[]>([]);
   const [docentes, setDocentes] = useState<Catalogo[]>([]);
   const [loadError, setLoadError] = useState<string>("");
+  const [loadingCursos, setLoadingCursos] = useState(false);
+  const [loadingDocentes, setLoadingDocentes] = useState(false);
 
   // Form
   const [periodoId, setPeriodoId] = useState("");
@@ -62,9 +64,20 @@ function EncuestaPage() {
           supabase.from("escuelas").select("id, nombre").order("nombre"),
           supabase.from("modalidades").select("id, nombre").order("nombre"),
         ]);
+
+        const escuelaOrden: Record<string, number> = {
+          Periodismo: 1,
+          "Comunicación Audiovisual": 2,
+        };
+        const modalidadOrden: Record<string, number> = {
+          Presencial: 1,
+          Semipresencial: 2,
+          Distancia: 3,
+        };
+
         setPeriodos(per ?? []);
-        setEscuelas(esc ?? []);
-        setModalidades(mod ?? []);
+        setEscuelas([...(esc ?? [])].sort((a, b) => (escuelaOrden[a.nombre] ?? 99) - (escuelaOrden[b.nombre] ?? 99)));
+        setModalidades([...(mod ?? [])].sort((a, b) => (modalidadOrden[a.nombre] ?? 99) - (modalidadOrden[b.nombre] ?? 99)));
         const activo = (per ?? []).find((p) => p.nombre === "2026-I") ?? (per ?? [])[0];
         if (activo) setPeriodoId(activo.id);
       } catch (e: unknown) {
@@ -81,6 +94,7 @@ function EncuestaPage() {
     setCursos([]);
     if (!escuelaId || !ciclo) return;
     (async () => {
+      setLoadingCursos(true);
       const { data } = await supabase
         .from("cursos")
         .select("id, nombre")
@@ -88,6 +102,7 @@ function EncuestaPage() {
         .eq("ciclo", ciclo)
         .order("nombre");
       setCursos(data ?? []);
+      setLoadingCursos(false);
     })();
   }, [escuelaId, ciclo]);
 
@@ -98,6 +113,7 @@ function EncuestaPage() {
     setDocentes([]);
     if (!escuelaId) return;
     (async () => {
+      setLoadingDocentes(true);
       const { data } = await supabase
         .from("docente_escuela")
         .select("docentes:docente_id(id, nombres)")
@@ -114,6 +130,7 @@ function EncuestaPage() {
       });
       flat.sort((a, b) => a.nombres.localeCompare(b.nombres));
       setDocentes(flat.map((d) => ({ id: d.id, nombre: d.nombres })));
+      setLoadingDocentes(false);
     })();
   }, [escuelaId]);
 
@@ -288,7 +305,7 @@ function EncuestaPage() {
                   {CICLOS.map((c) => <option key={c} value={c}>{c}</option>)}
                 </Select>
               </Field>
-              <Field label="Nombre del curso *" hint="Selecciona primero la escuela y el ciclo.">
+              <Field label="Nombre del curso *" hint={!escuelaId || !ciclo ? "Selecciona primero la escuela y el ciclo." : loadingCursos ? "Cargando cursos..." : cursos.length === 0 ? "No hay cursos cargados para esta escuela y ciclo." : undefined}>
                 <Select
                   value={cursoId}
                   onChange={setCursoId}
@@ -297,12 +314,22 @@ function EncuestaPage() {
                 >
                   {cursos.map((c) => <option key={c.id} value={c.id}>{c.nombre}</option>)}
                 </Select>
+                {escuelaId && ciclo && cursos.length === 0 && (
+                  <p className="mt-1 text-xs font-medium" style={{ color: "var(--ujbm-red)" }}>
+                    No hay cursos cargados para esta escuela y ciclo.
+                  </p>
+                )}
               </Field>
-              <Field label="Nombre del docente *">
+              <Field label="Nombre del docente *" hint={!escuelaId ? undefined : loadingDocentes ? "Cargando docentes..." : docentes.length === 0 ? "No hay docentes cargados para esta escuela." : undefined}>
                 <Select value={docenteId} onChange={setDocenteId} placeholder="Selecciona el docente" disabled={!escuelaId}>
                   {docentes.map((d) => <option key={d.id} value={d.id}>{d.nombre}</option>)}
                   <option value="__otros__">Otros</option>
                 </Select>
+                {escuelaId && docentes.length === 0 && (
+                  <p className="mt-1 text-xs font-medium" style={{ color: "var(--ujbm-red)" }}>
+                    No hay docentes cargados para esta escuela.
+                  </p>
+                )}
               </Field>
               {docenteId === "__otros__" && (
                 <Field label="Especifica el nombre del docente *">
