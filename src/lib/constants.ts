@@ -1,15 +1,8 @@
-// Imágenes institucionales (servidas desde Lovable Assets CDN).
-import logoHorizontal from "@/assets/logo-horizontal.png.asset.json";
-import logoCircular from "@/assets/logo-circular.png.asset.json";
-import fachada from "@/assets/fachada.png.asset.json";
-import fachadaAzul from "@/assets/fachada-azul.jpg.asset.json";
-import fachadaVertical from "@/assets/fachada-vertical.jpg.asset.json";
-
-export const IMG_LOGO_HORIZONTAL = logoHorizontal.url;
-export const IMG_LOGO_CIRCULAR = logoCircular.url;
-export const IMG_FACHADA = fachada.url;
-export const IMG_FACHADA_AZUL = fachadaAzul.url;
-export const IMG_FACHADA_VERTICAL = fachadaVertical.url;
+export const IMG_LOGO_HORIZONTAL = "/assets/logo-horizontal.png";
+export const IMG_LOGO_CIRCULAR = "/assets/logo-circular.png";
+export const IMG_FACHADA = "/assets/fachada-banner.jpg";
+export const IMG_FACHADA_AZUL = "/assets/fachada-fondo.png";
+export const IMG_FACHADA_VERTICAL = "/assets/fachada-secundaria.jpg";
 
 export const CICLOS = ["I","II","III","IV","V","VI","VII","VIII","IX","X"] as const;
 export const ESCALA = [
