@@ -102,12 +102,18 @@ function EncuestaPage() {
         .from("docente_escuela")
         .select("docentes:docente_id(id, nombres)")
         .eq("escuela_id", escuelaId);
-      const list = (data ?? [])
-        .map((r: { docentes: { id: string; nombres: string } | null }) => r.docentes)
-        .filter((d): d is { id: string; nombres: string } => !!d)
-        .map((d) => ({ id: d.id, nombres: d.nombres }))
-        .sort((a, b) => a.nombres.localeCompare(b.nombres));
-      setDocentes(list.map((d) => ({ id: d.id, nombre: d.nombres })));
+      const rows = (data ?? []) as unknown as Array<{
+        docentes: { id: string; nombres: string } | { id: string; nombres: string }[] | null;
+      }>;
+      const flat: { id: string; nombres: string }[] = [];
+      rows.forEach((r) => {
+        const d = r.docentes;
+        if (!d) return;
+        if (Array.isArray(d)) d.forEach((x) => flat.push(x));
+        else flat.push(d);
+      });
+      flat.sort((a, b) => a.nombres.localeCompare(b.nombres));
+      setDocentes(flat.map((d) => ({ id: d.id, nombre: d.nombres })));
     })();
   }, [escuelaId]);
 
