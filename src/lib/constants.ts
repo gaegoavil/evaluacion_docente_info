@@ -1,9 +1,15 @@
-// Imágenes institucionales (servidas por Lovable CDN como /lovable-uploads).
-export const IMG_LOGO_HORIZONTAL = "/lovable-uploads/8162c47f-b0ae-420a-8c2c-b3c2ddba446c.png";
-export const IMG_LOGO_CIRCULAR = "/lovable-uploads/1f47c9e2-e3e1-42f0-9345-1e126dc93776.png";
-export const IMG_FACHADA = "/lovable-uploads/6e476607-a156-42c1-adc3-9dbd8145fe8c.png";
-export const IMG_FACHADA_AZUL = "/lovable-uploads/8433bfe9-8bf4-4fe7-a336-023bb043b718.jpg";
-export const IMG_FACHADA_VERTICAL = "/lovable-uploads/e53ff9aa-0a9a-4449-8513-df6b9351726c.jpg";
+// Imágenes institucionales (servidas desde Lovable Assets CDN).
+import logoHorizontal from "@/assets/logo-horizontal.png.asset.json";
+import logoCircular from "@/assets/logo-circular.png.asset.json";
+import fachada from "@/assets/fachada.png.asset.json";
+import fachadaAzul from "@/assets/fachada-azul.jpg.asset.json";
+import fachadaVertical from "@/assets/fachada-vertical.jpg.asset.json";
+
+export const IMG_LOGO_HORIZONTAL = logoHorizontal.url;
+export const IMG_LOGO_CIRCULAR = logoCircular.url;
+export const IMG_FACHADA = fachada.url;
+export const IMG_FACHADA_AZUL = fachadaAzul.url;
+export const IMG_FACHADA_VERTICAL = fachadaVertical.url;
 
 export const CICLOS = ["I","II","III","IV","V","VI","VII","VIII","IX","X"] as const;
 export const ESCALA = [
