@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { InstitutionalHeader } from "@/components/InstitutionalHeader";
 import { InstitutionalBanner } from "@/components/InstitutionalBanner";
-import { IMG_LOGO_CIRCULAR, IMG_FACHADA_VERTICAL } from "@/lib/constants";
+import { IMG_LOGO_CIRCULAR, IMG_FACHADA_AZUL } from "@/lib/constants";
 import { ShieldCheck, Clock, UserX } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -21,7 +21,7 @@ function Welcome() {
       <InstitutionalBanner />
       <main
         className="flex-1 ujbm-bg-fade px-4 py-10 sm:py-14"
-        style={{ ["--bg-img" as never]: `url(${IMG_FACHADA_VERTICAL})` }}
+        style={{ ["--bg-img" as never]: `url(${IMG_FACHADA_AZUL})` }}
       >
         <div className="mx-auto max-w-2xl">
           <div className="ujbm-card p-6 sm:p-10 text-center">
