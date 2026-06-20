@@ -127,7 +127,9 @@ function EncuestaPage() {
         const activo =
           (per ?? []).find((p) => p.nombre === "2026-I") ?? (per ?? [])[0];
 
-        if (activo) setPeriodoId(activo.id);
+        if (activo) {
+          setPeriodoId(activo.id);
+        }
       } catch (e: unknown) {
         setLoadError(
           "No se pudieron cargar los catálogos desde Supabase. Verifica las variables VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY, y que las tablas existan."
@@ -876,7 +878,7 @@ function EmailValidationCard({
   onContinue: () => void;
 }) {
   return (
-    <section className="ujbm-card p-6 sm:p-8 text-center">
+    <section className="ujbm-card relative z-10 p-6 sm:p-8 text-center">
       <h3
         className="text-2xl font-semibold"
         style={{ color: "var(--ujbm-blue-dark)" }}
@@ -898,6 +900,12 @@ function EmailValidationCard({
           className="ujbm-input"
           value={correo}
           onChange={(e) => setCorreo(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              onContinue();
+            }
+          }}
           placeholder="usuario@bausate.edu.pe"
         />
 
@@ -916,9 +924,9 @@ function EmailValidationCard({
 
         <button
           type="button"
-          disabled={checkingEmail}
           onClick={onContinue}
-          className="mt-5 w-full h-11 rounded-md text-white font-semibold disabled:opacity-50"
+          disabled={checkingEmail}
+          className="mt-5 w-full h-11 rounded-md text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           style={{ background: "var(--ujbm-blue)" }}
         >
           {checkingEmail ? "Validando..." : "Continuar"}
