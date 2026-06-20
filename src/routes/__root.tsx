@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Evaluación Docente UJBM" },
+      { name: "description", content: "Web app for faculty evaluation surveys at Universidad Jaime Bausate y Meza." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Evaluación Docente UJBM" },
+      { property: "og:description", content: "Web app for faculty evaluation surveys at Universidad Jaime Bausate y Meza." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Evaluación Docente UJBM" },
+      { name: "twitter:description", content: "Web app for faculty evaluation surveys at Universidad Jaime Bausate y Meza." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3e59c060-243d-4ce3-ab81-876d4b919f8a/id-preview-25ff93c3--1d8bb70a-bb3c-4249-a36d-7fdaa498a15d.lovable.app-1781987564193.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3e59c060-243d-4ce3-ab81-876d4b919f8a/id-preview-25ff93c3--1d8bb70a-bb3c-4249-a36d-7fdaa498a15d.lovable.app-1781987564193.png" },
     ],
     links: [
       {
