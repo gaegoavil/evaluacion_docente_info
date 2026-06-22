@@ -21,19 +21,30 @@ export function RatingScale({
         >
           {numero}
         </span>
-        <p className="text-sm sm:text-base text-foreground leading-relaxed">{texto}</p>
+
+        <p className="text-sm sm:text-base text-foreground leading-relaxed">
+          {texto}
+        </p>
       </div>
-      <div className="mt-4 grid grid-cols-5 gap-2 sm:flex sm:gap-2 sm:justify-start sm:ml-11">
+
+      <div
+        translate="no"
+        className="notranslate mt-4 grid grid-cols-5 gap-2 sm:flex sm:gap-2 sm:justify-start sm:ml-11"
+      >
         {ESCALA.map((opt) => (
           <button
             key={opt.v}
             type="button"
+            translate="no"
             onClick={() => onChange(opt.v)}
-            className="scale-btn"
+            className="scale-btn notranslate"
             data-selected={value === opt.v}
-            title={opt.label}
+            title={`${opt.v} - ${opt.label}`}
+            aria-label={`${opt.v} - ${opt.label}`}
           >
-            {opt.v}
+            <span translate="no" className="notranslate">
+              {opt.v}
+            </span>
           </button>
         ))}
       </div>
