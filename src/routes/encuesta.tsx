@@ -39,7 +39,6 @@ type Catalogo = {
 function EncuestaPage() {
   const navigate = useNavigate();
 
-  // Catálogos
   const [periodos, setPeriodos] = useState<Catalogo[]>([]);
   const [escuelas, setEscuelas] = useState<Catalogo[]>([]);
   const [modalidades, setModalidades] = useState<Catalogo[]>([]);
@@ -50,13 +49,11 @@ function EncuestaPage() {
   const [loadingCursos, setLoadingCursos] = useState(false);
   const [loadingDocentes, setLoadingDocentes] = useState(false);
 
-  // Validación previa de correo institucional
   const [correo, setCorreo] = useState("");
   const [emailValidated, setEmailValidated] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
 
-  // Formulario
   const [periodoId, setPeriodoId] = useState("");
   const [escuelaId, setEscuelaId] = useState("");
   const [ciclo, setCiclo] = useState("");
@@ -73,7 +70,6 @@ function EncuestaPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
-  // Carga inicial de catálogos
   useEffect(() => {
     (async () => {
       try {
@@ -83,16 +79,8 @@ function EncuestaPage() {
             .select("id, nombre")
             .eq("activo", true)
             .order("nombre"),
-
-          supabase
-            .from("escuelas")
-            .select("id, nombre")
-            .order("nombre"),
-
-          supabase
-            .from("modalidades")
-            .select("id, nombre")
-            .order("nombre"),
+          supabase.from("escuelas").select("id, nombre").order("nombre"),
+          supabase.from("modalidades").select("id, nombre").order("nombre"),
         ]);
 
         const escuelaOrden: Record<string, number> = {
@@ -139,7 +127,6 @@ function EncuestaPage() {
     })();
   }, []);
 
-  // Cursos según escuela + ciclo
   useEffect(() => {
     setCursoId("");
     setCursos([]);
@@ -169,7 +156,6 @@ function EncuestaPage() {
     })();
   }, [escuelaId, ciclo]);
 
-  // Docentes según escuela
   useEffect(() => {
     setDocenteId("");
     setDocenteOtro("");
@@ -325,8 +311,6 @@ function EncuestaPage() {
       const docenteRealId = isOtros ? null : docenteId;
       const docenteOtroVal = isOtros ? docenteOtro.trim() : null;
 
-      // Segunda validación de seguridad antes de insertar.
-      // Regla: 1 correo institucional = 1 encuesta por periodo académico.
       const { count, error: dupErr } = await supabase
         .from("encuestas")
         .select("id", { head: true, count: "exact" })
@@ -340,7 +324,6 @@ function EncuestaPage() {
         return;
       }
 
-      // Insertar encuesta principal
       const { data: enc, error: encErr } = await supabase
         .from("encuestas")
         .insert({
@@ -369,7 +352,6 @@ function EncuestaPage() {
         throw encErr ?? new Error("No se pudo registrar la encuesta.");
       }
 
-      // Insertar respuestas individuales
       const numeros = todasPreguntas.map((p) => p.numero);
 
       const { data: pregs, error: pregsErr } = await supabase
@@ -418,7 +400,6 @@ function EncuestaPage() {
         if (rErr) throw rErr;
       }
 
-      // Insertar comentarios opcionales
       if (coment1.trim() || coment2.trim() || coment3.trim()) {
         const { error: cErr } = await supabase.from("comentarios").insert({
           encuesta_id: enc.id,
@@ -448,7 +429,7 @@ function EncuestaPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background notranslate" translate="no">
       <InstitutionalHeader />
       <InstitutionalBanner />
 
@@ -494,7 +475,6 @@ function EncuestaPage() {
             />
           ) : (
             <>
-              {/* Sección 1 - Datos generales */}
               <section className="ujbm-card p-5 sm:p-6">
                 <h3
                   className="text-lg font-semibold"
@@ -648,7 +628,6 @@ function EncuestaPage() {
                 </div>
               </section>
 
-              {/* Sección 2 - Encuesta docente */}
               <section className="ujbm-card p-5 sm:p-6">
                 <h3
                   className="text-lg font-semibold"
@@ -661,19 +640,26 @@ function EncuestaPage() {
                   Escala de valoración
                 </p>
 
-                <ul className="mt-2 grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs text-muted-foreground">
+                <ul
+                  translate="no"
+                  className="notranslate mt-2 grid grid-cols-1 sm:grid-cols-5 gap-2 text-xs text-muted-foreground"
+                >
                   {ESCALA.map((e) => (
                     <li
                       key={e.v}
-                      className="rounded-md border border-border bg-secondary/50 px-2 py-1.5"
+                      translate="no"
+                      className="notranslate rounded-md border border-border bg-secondary/50 px-2 py-1.5"
                     >
                       <span
-                        className="font-bold"
+                        translate="no"
+                        className="notranslate font-bold"
                         style={{ color: "var(--ujbm-blue)" }}
                       >
                         {e.v}
                       </span>{" "}
-                      {e.label}
+                      <span translate="no" className="notranslate">
+                        {e.label}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -691,7 +677,6 @@ function EncuestaPage() {
                 setRespuestas={setRespuestas}
               />
 
-              {/* Sección III modalidad */}
               <section className="ujbm-card p-5 sm:p-6">
                 <h3
                   className="text-base sm:text-lg font-semibold"
@@ -751,7 +736,6 @@ function EncuestaPage() {
                 setRespuestas={setRespuestas}
               />
 
-              {/* Sección VI - Comentarios */}
               <section className="ujbm-card p-5 sm:p-6">
                 <h3
                   className="text-base sm:text-lg font-semibold"
