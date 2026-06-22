@@ -17,7 +17,9 @@ function NotFoundComponent() {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">
+          Page not found
+        </h2>
         <p className="mt-2 text-sm text-muted-foreground">
           The page you're looking for doesn't exist or has been moved.
         </p>
@@ -37,6 +39,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -77,18 +80,28 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "google", content: "notranslate" },
       { title: "Evaluación Docente UJBM" },
-      { name: "description", content: "Web app for faculty evaluation surveys at Universidad Jaime Bausate y Meza." },
-      { name: "author", content: "Lovable" },
+      {
+        name: "description",
+        content:
+          "Encuesta de Evaluación Docente de la Universidad Jaime Bausate y Meza.",
+      },
+      { name: "author", content: "Universidad Jaime Bausate y Meza" },
       { property: "og:title", content: "Evaluación Docente UJBM" },
-      { property: "og:description", content: "Web app for faculty evaluation surveys at Universidad Jaime Bausate y Meza." },
+      {
+        property: "og:description",
+        content:
+          "Encuesta de Evaluación Docente de la Universidad Jaime Bausate y Meza.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "Evaluación Docente UJBM" },
-      { name: "twitter:description", content: "Web app for faculty evaluation surveys at Universidad Jaime Bausate y Meza." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3e59c060-243d-4ce3-ab81-876d4b919f8a/id-preview-25ff93c3--1d8bb70a-bb3c-4249-a36d-7fdaa498a15d.lovable.app-1781987564193.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/3e59c060-243d-4ce3-ab81-876d4b919f8a/id-preview-25ff93c3--1d8bb70a-bb3c-4249-a36d-7fdaa498a15d.lovable.app-1781987564193.png" },
+      {
+        name: "twitter:description",
+        content:
+          "Encuesta de Evaluación Docente de la Universidad Jaime Bausate y Meza.",
+      },
     ],
     links: [
       {
@@ -105,11 +118,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="es" translate="no" className="notranslate">
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body translate="no" className="notranslate">
         {children}
         <Scripts />
       </body>
@@ -122,7 +135,6 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>
   );
