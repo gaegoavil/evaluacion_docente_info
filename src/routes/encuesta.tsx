@@ -273,22 +273,17 @@ function EncuestaPage() {
       return;
     }
 
+    /*
+      Nueva regla:
+      El correo institucional solo se valida por dominio.
+      Ya no se bloquea al estudiante por haber respondido antes.
+      El bloqueo de duplicado se hace recién al enviar,
+      considerando periodo + curso + docente + correo.
+    */
+
     setCheckingEmail(true);
 
     try {
-      const { count, error } = await supabase
-        .from("encuestas")
-        .select("id", { head: true, count: "exact" })
-        .eq("periodo_id", periodoId)
-        .eq("correo_normalizado", correoNorm);
-
-      if (error) throw error;
-
-      if ((count ?? 0) > 0) {
-        navigate({ to: "/gracias" });
-        return;
-      }
-
       setEmailValidated(true);
     } catch (e: unknown) {
       console.error("Error validando correo:", e);
@@ -311,11 +306,26 @@ function EncuestaPage() {
       const docenteRealId = isOtros ? null : docenteId;
       const docenteOtroVal = isOtros ? docenteOtro.trim() : null;
 
-      const { count, error: dupErr } = await supabase
+      /*
+        Nueva regla:
+        El mismo correo puede responder varios cursos.
+        Pero no puede repetir el mismo curso/docente en el mismo periodo.
+      */
+
+      let dupQuery = supabase
         .from("encuestas")
         .select("id", { head: true, count: "exact" })
         .eq("periodo_id", periodoId)
+        .eq("escuela_id", escuelaId)
+        .eq("ciclo", ciclo)
+        .eq("curso_id", cursoId)
         .eq("correo_normalizado", correoNorm);
+
+      dupQuery = isOtros
+        ? dupQuery.is("docente_id", null).eq("docente_otro", docenteOtroVal!)
+        : dupQuery.eq("docente_id", docenteRealId!);
+
+      const { count, error: dupErr } = await dupQuery;
 
       if (dupErr) throw dupErr;
 
@@ -894,7 +904,7 @@ function EmailValidationCard({
         />
 
         <p className="mt-2 text-xs text-muted-foreground">
-          Solo se aceptan correos con dominio @bausate.edu.pe. Cada correo puede responder una sola vez por periodo académico.
+          Solo se aceptan correos con dominio @bausate.edu.pe. Puedes responder una encuesta por cada curso que lleves en el periodo académico.
         </p>
 
         {emailError && (
