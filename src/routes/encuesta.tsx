@@ -84,9 +84,10 @@ function EncuestaPage() {
         ]);
 
         const escuelaOrden: Record<string, number> = {
-          Periodismo: 1,
-          "Comunicación Audiovisual": 2,
-        };
+  Administración: 1,
+  Contabilidad: 2,
+  "Ingeniería Informática": 3,
+};
 
         const modalidadOrden: Record<string, number> = {
           Presencial: 1,
