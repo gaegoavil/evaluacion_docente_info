@@ -33,7 +33,7 @@ export const SECCION_II: Seccion = {
   preguntas: [
     { numero: 5, texto: "El docente demostró dominio de los contenidos de la asignatura." },
     { numero: 6, texto: "El docente relacionó los contenidos con situaciones reales del ejercicio profesional." },
-    { numero: 7, texto: "El docente incorporó ejemplos, tendencias y casos actuales relacionados con el periodismo y la comunicación audiovisual." },
+    { numero: 7, texto: "El docente incorporó ejemplos, tendencias y casos actuales relacionados con la carrera profesional." },
     { numero: 8, texto: "El docente respondió de manera clara y precisa las consultas realizadas por los estudiantes." },
   ],
 };
