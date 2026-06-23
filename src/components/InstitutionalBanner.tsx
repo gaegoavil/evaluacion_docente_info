@@ -22,7 +22,7 @@ export function InstitutionalBanner() {
             Encuesta de Evaluación Docente
           </p>
           <h1 className="mt-2 text-xl sm:text-3xl md:text-4xl font-semibold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.45)]">
-            Facultad de Ciencias Empresariales e Ingeniería
+            Facultad de Ciencias de la Comunicación Social
           </h1>
         </div>
       </section>
