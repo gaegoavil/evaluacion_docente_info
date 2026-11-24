@@ -62,6 +62,14 @@ function EncuestaPage() {
   const [docenteOtro, setDocenteOtro] = useState("");
   const [modalidadId, setModalidadId] = useState("");
 
+  // Asignaciones del periodo (tabla public.asignaciones): qué docente dicta qué curso,
+  // en qué escuela, ciclo y modalidad. Si el periodo no tiene asignaciones cargadas,
+  // la encuesta usa los catálogos generales (comportamiento anterior).
+  const [usaAsignaciones, setUsaAsignaciones] = useState(false);
+  const [asigCurso, setAsigCurso] = useState<
+    { docente_id: string; modalidad_id: string }[]
+  >([]);
+
   const [respuestas, setRespuestas] = useState<Record<number, number>>({});
   const [coment1, setComent1] = useState("");
   const [coment2, setComent2] = useState("");
@@ -113,8 +121,10 @@ function EncuestaPage() {
           )
         );
 
-        const activo =
-          (per ?? []).find((p) => p.nombre === "2026-I") ?? (per ?? [])[0];
+        // Periodo activo más reciente (se administra en la tabla periodos de Supabase).
+        const activo = [...(per ?? [])].sort((a, b) =>
+          b.nombre.localeCompare(a.nombre)
+        )[0];
 
         if (activo) {
           setPeriodoId(activo.id);
@@ -129,6 +139,20 @@ function EncuestaPage() {
   }, []);
 
   useEffect(() => {
+    setUsaAsignaciones(false);
+    if (!periodoId) return;
+
+    (async () => {
+      const { count, error } = await supabase
+        .from("asignaciones")
+        .select("id", { count: "exact", head: true })
+        .eq("periodo_id", periodoId);
+
+      setUsaAsignaciones(!error && (count ?? 0) > 0);
+    })();
+  }, [periodoId]);
+
+  useEffect(() => {
     setCursoId("");
     setCursos([]);
 
@@ -138,6 +162,29 @@ function EncuestaPage() {
       setLoadingCursos(true);
 
       try {
+        if (usaAsignaciones) {
+          const { data, error } = await supabase
+            .from("asignaciones")
+            .select("cursos:curso_id(id, nombre)")
+            .eq("periodo_id", periodoId)
+            .eq("escuela_id", escuelaId)
+            .eq("ciclo", ciclo);
+
+          if (error) throw error;
+
+          const unicos = new Map<string, Catalogo>();
+          for (const r of (data ?? []) as unknown as Array<{
+            cursos: { id: string; nombre: string } | null;
+          }>) {
+            if (r.cursos) unicos.set(r.cursos.id, r.cursos);
+          }
+
+          setCursos(
+            [...unicos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
+          );
+          return;
+        }
+
         const { data, error } = await supabase
           .from("cursos")
           .select("id, nombre")
@@ -155,19 +202,51 @@ function EncuestaPage() {
         setLoadingCursos(false);
       }
     })();
-  }, [escuelaId, ciclo]);
+  }, [escuelaId, ciclo, periodoId, usaAsignaciones]);
 
   useEffect(() => {
     setDocenteId("");
     setDocenteOtro("");
     setDocentes([]);
+    setAsigCurso([]);
 
     if (!escuelaId) return;
+    if (usaAsignaciones && (!ciclo || !cursoId)) return;
 
     (async () => {
       setLoadingDocentes(true);
 
       try {
+        if (usaAsignaciones) {
+          // Solo los docentes que dictan el curso elegido en este periodo.
+          const { data, error } = await supabase
+            .from("asignaciones")
+            .select("docente_id, modalidad_id, docentes:docente_id(id, nombres)")
+            .eq("periodo_id", periodoId)
+            .eq("escuela_id", escuelaId)
+            .eq("ciclo", ciclo)
+            .eq("curso_id", cursoId);
+
+          if (error) throw error;
+
+          const filas = (data ?? []) as unknown as Array<{
+            docente_id: string;
+            modalidad_id: string;
+            docentes: { id: string; nombres: string } | null;
+          }>;
+
+          const unicos = new Map<string, Catalogo>();
+          filas.forEach((r) => {
+            if (r.docentes) unicos.set(r.docentes.id, { id: r.docentes.id, nombre: r.docentes.nombres });
+          });
+
+          setAsigCurso(filas.map(({ docente_id, modalidad_id }) => ({ docente_id, modalidad_id })));
+          setDocentes(
+            [...unicos.values()].sort((a, b) => a.nombre.localeCompare(b.nombre))
+          );
+          return;
+        }
+
         const { data, error } = await supabase
           .from("docente_escuela")
           .select("docentes:docente_id(id, nombres)")
@@ -210,7 +289,33 @@ function EncuestaPage() {
         setLoadingDocentes(false);
       }
     })();
-  }, [escuelaId]);
+  }, [escuelaId, ciclo, cursoId, periodoId, usaAsignaciones]);
+
+  // Modalidades posibles según el curso (y docente) elegido; si solo hay una, se marca sola.
+  const modalidadesDisponibles = useMemo(() => {
+    if (!usaAsignaciones || asigCurso.length === 0) return modalidades;
+
+    const filas =
+      docenteId && docenteId !== "__otros__"
+        ? asigCurso.filter((a) => a.docente_id === docenteId)
+        : asigCurso;
+    const ids = new Set(filas.map((a) => a.modalidad_id));
+    const lista = modalidades.filter((m) => ids.has(m.id));
+
+    return lista.length > 0 ? lista : modalidades;
+  }, [usaAsignaciones, asigCurso, docenteId, modalidades]);
+
+  useEffect(() => {
+    if (!usaAsignaciones || asigCurso.length === 0) return;
+
+    if (modalidadesDisponibles.length === 1) {
+      if (modalidadId !== modalidadesDisponibles[0].id) {
+        setModalidadId(modalidadesDisponibles[0].id);
+      }
+    } else if (modalidadId && !modalidadesDisponibles.some((m) => m.id === modalidadId)) {
+      setModalidadId("");
+    }
+  }, [usaAsignaciones, asigCurso, modalidadesDisponibles, modalidadId]);
 
   const modalidadNombre = useMemo<Modalidad | "">(() => {
     const m = modalidades.find((m) => m.id === modalidadId);
@@ -580,18 +685,22 @@ function EncuestaPage() {
                     hint={
                       !escuelaId
                         ? undefined
-                        : loadingDocentes
-                          ? "Cargando docentes..."
-                          : docentes.length === 0
-                            ? "No hay docentes cargados para esta escuela."
-                            : undefined
+                        : usaAsignaciones && !cursoId
+                          ? "Selecciona primero el curso."
+                          : loadingDocentes
+                            ? "Cargando docentes..."
+                            : docentes.length === 0
+                              ? usaAsignaciones
+                                ? "No hay docentes cargados para este curso."
+                                : "No hay docentes cargados para esta escuela."
+                              : undefined
                     }
                   >
                     <Select
                       value={docenteId}
                       onChange={setDocenteId}
                       placeholder="Selecciona el docente"
-                      disabled={!escuelaId}
+                      disabled={!escuelaId || (usaAsignaciones && !cursoId)}
                     >
                       {docentes.map((d) => (
                         <option key={d.id} value={d.id}>
@@ -601,7 +710,7 @@ function EncuestaPage() {
                       <option value="__otros__">Otros</option>
                     </Select>
 
-                    {escuelaId && docentes.length === 0 && !loadingDocentes && (
+                    {escuelaId && !usaAsignaciones && docentes.length === 0 && !loadingDocentes && (
                       <p
                         className="mt-1 text-xs font-medium"
                         style={{ color: "var(--ujbm-red)" }}
@@ -629,7 +738,7 @@ function EncuestaPage() {
                       onChange={setModalidadId}
                       placeholder="Selecciona la modalidad"
                     >
-                      {modalidades.map((m) => (
+                      {modalidadesDisponibles.map((m) => (
                         <option key={m.id} value={m.id}>
                           {m.nombre}
                         </option>

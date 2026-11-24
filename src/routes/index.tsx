@@ -3,8 +3,12 @@ import { InstitutionalHeader } from "@/components/InstitutionalHeader";
 import { InstitutionalBanner } from "@/components/InstitutionalBanner";
 import { IMG_LOGO_CIRCULAR, IMG_FACHADA_AZUL } from "@/lib/constants";
 import { ShieldCheck, Clock, UserX } from "lucide-react";
+import { fetchPeriodoActivo } from "@/lib/periodo";
 
 export const Route = createFileRoute("/")({
+  // Lee el periodo activo desde Supabase (tabla periodos) para no tener que
+  // editar el código cada semestre. Si falla, simplemente no se muestra.
+  loader: async () => ({ periodo: await fetchPeriodoActivo() }),
   head: () => ({
     meta: [
       { title: "Encuesta de Evaluación Docente — UJBM" },
@@ -15,6 +19,7 @@ export const Route = createFileRoute("/")({
 });
 
 function Welcome() {
+  const { periodo } = Route.useLoaderData();
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <InstitutionalHeader />
@@ -31,9 +36,11 @@ function Welcome() {
               className="mx-auto h-16 w-16 sm:h-20 sm:w-20"
               style={{ objectFit: "contain" }}
             />
-            <p className="mt-5 text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: "var(--ujbm-red)" }}>
-              Periodo académico 2026 - I
-            </p>
+            {periodo && (
+              <p className="mt-5 text-xs sm:text-sm font-semibold tracking-[0.2em] uppercase" style={{ color: "var(--ujbm-red)" }}>
+                Periodo académico {periodo.replace("-", " - ")}
+              </p>
+            )}
             <h2 className="mt-3 text-2xl sm:text-3xl font-semibold" style={{ color: "var(--ujbm-blue-dark)" }}>
               Encuesta de Evaluación Docente
             </h2>

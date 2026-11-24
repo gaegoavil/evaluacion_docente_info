@@ -59,6 +59,7 @@ function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<Row | null>(null);
 
+  const [fPeriodo, setFPeriodo] = useState("");
   const [fEscuela, setFEscuela] = useState("");
   const [fModalidad, setFModalidad] = useState("");
   const [fCiclo, setFCiclo] = useState("");
@@ -141,11 +142,12 @@ function AdminDashboardPage() {
   const filtered = useMemo(() => {
     return rows.filter(
       (r) =>
+        (!fPeriodo || r.periodos?.nombre === fPeriodo) &&
         (!fEscuela || r.escuelas?.nombre === fEscuela) &&
         (!fModalidad || r.modalidades?.nombre === fModalidad) &&
         (!fCiclo || r.ciclo === fCiclo)
     );
-  }, [rows, fEscuela, fModalidad, fCiclo]);
+  }, [rows, fPeriodo, fEscuela, fModalidad, fCiclo]);
 
   const stats = useMemo(() => {
     const total = filtered.length;
@@ -248,6 +250,12 @@ function AdminDashboardPage() {
       dimensionChart,
     };
   }, [filtered]);
+
+  const periodoOpts = (
+    Array.from(
+      new Set(rows.map((r) => r.periodos?.nombre).filter(Boolean))
+    ) as string[]
+  ).sort((a, b) => b.localeCompare(a));
 
   const escuelasOpts = Array.from(
     new Set(rows.map((r) => r.escuelas?.nombre).filter(Boolean))
@@ -454,7 +462,8 @@ function AdminDashboardPage() {
         </div>
 
         {/* Filtros */}
-        <div className="ujbm-card p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="ujbm-card p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <Sel label="Periodo" value={fPeriodo} onChange={setFPeriodo} options={periodoOpts} />
           <Sel label="Escuela" value={fEscuela} onChange={setFEscuela} options={escuelasOpts} />
           <Sel
             label="Modalidad"
