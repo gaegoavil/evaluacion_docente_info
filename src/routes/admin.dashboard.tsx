@@ -47,7 +47,9 @@ type Row = {
   }[];
 };
 
-const CHART_COLORS = ["#003B7A", "#D71920", "#CDA349", "#0F766E", "#7C3AED"];
+type Periodo = { id: string; nombre: string; activo: boolean };
+
+const CHART_COLORS =["#003B7A", "#D71920", "#CDA349", "#0F766E", "#7C3AED"];
 
 const CICLO_ORDER = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 
@@ -59,7 +61,9 @@ function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [selectedRow, setSelectedRow] = useState<Row | null>(null);
 
-  const [fPeriodo, setFPeriodo] = useState("");
+  // Periodo que se muestra: por defecto el activo; los anteriores quedan como historial.
+  const [periodos, setPeriodos] = useState<Periodo[]>([]);
+  const [periodoId, setPeriodoId] = useState("");
   const [fEscuela, setFEscuela] = useState("");
   const [fModalidad, setFModalidad] = useState("");
   const [fCiclo, setFCiclo] = useState("");
@@ -96,6 +100,27 @@ function AdminDashboardPage() {
     if (checking) return;
 
     (async () => {
+      const { data, error } = await supabase
+        .from("periodos")
+        .select("id, nombre, activo");
+
+      if (error) console.error("Error cargando periodos:", error);
+
+      const lista = ((data ?? []) as Periodo[]).sort((a, b) =>
+        b.nombre.localeCompare(a.nombre)
+      );
+      const enCurso = lista.find((p) => p.activo) ?? lista[0];
+
+      setPeriodos(lista);
+      if (enCurso) setPeriodoId(enCurso.id);
+      else setLoading(false);
+    })();
+  }, [checking]);
+
+  useEffect(() => {
+    if (checking || !periodoId) return;
+
+    (async () => {
       setLoading(true);
 
       const { data, error } = await supabase
@@ -125,8 +150,9 @@ function AdminDashboardPage() {
             sugerencia_adicional
           )
         `)
+        .eq("periodo_id", periodoId)
         .order("created_at", { ascending: false })
-        .limit(2000);
+        .limit(5000);
 
       if (error) {
         console.error("Error cargando dashboard:", error);
@@ -137,17 +163,26 @@ function AdminDashboardPage() {
 
       setLoading(false);
     })();
-  }, [checking]);
+  }, [checking, periodoId]);
+
+  const periodoSel = periodos.find((p) => p.id === periodoId);
+  const archivado = !!periodoSel && !periodoSel.activo;
+
+  function cambiarPeriodo(id: string) {
+    setPeriodoId(id);
+    setFEscuela("");
+    setFModalidad("");
+    setFCiclo("");
+  }
 
   const filtered = useMemo(() => {
     return rows.filter(
       (r) =>
-        (!fPeriodo || r.periodos?.nombre === fPeriodo) &&
         (!fEscuela || r.escuelas?.nombre === fEscuela) &&
         (!fModalidad || r.modalidades?.nombre === fModalidad) &&
         (!fCiclo || r.ciclo === fCiclo)
     );
-  }, [rows, fPeriodo, fEscuela, fModalidad, fCiclo]);
+  }, [rows, fEscuela, fModalidad, fCiclo]);
 
   const stats = useMemo(() => {
     const total = filtered.length;
@@ -251,12 +286,6 @@ function AdminDashboardPage() {
     };
   }, [filtered]);
 
-  const periodoOpts = (
-    Array.from(
-      new Set(rows.map((r) => r.periodos?.nombre).filter(Boolean))
-    ) as string[]
-  ).sort((a, b) => b.localeCompare(a));
-
   const escuelasOpts = Array.from(
     new Set(rows.map((r) => r.escuelas?.nombre).filter(Boolean))
   ) as string[];
@@ -318,7 +347,7 @@ function AdminDashboardPage() {
 
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `respuestas-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `respuestas-${periodoSel?.nombre ?? "periodo"}-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
   }
 
@@ -368,13 +397,44 @@ function AdminDashboardPage() {
           </div>
         </div>
 
-        <div className="ujbm-card p-4 border-l-4" style={{ borderLeftColor: "#15803d" }}>
-          <p className="text-sm font-semibold" style={{ color: "var(--ujbm-blue-dark)" }}>
-            Catálogos listos.
-          </p>
-          <p className="text-sm text-muted-foreground mt-1">
-            La encuesta está preparada para recibir respuestas.
-          </p>
+        <div
+          className="ujbm-card p-4 border-l-4 flex flex-wrap items-end justify-between gap-4"
+          style={{ borderLeftColor: archivado ? "var(--ujbm-gold)" : "#15803d" }}
+        >
+          <div className="min-w-0 flex-1 basis-64">
+            <p className="text-sm font-semibold" style={{ color: "var(--ujbm-blue-dark)" }}>
+              {!periodoSel
+                ? "Cargando periodo..."
+                : archivado
+                  ? `Historial: periodo ${periodoSel.nombre} (archivado)`
+                  : `Periodo en curso: ${periodoSel.nombre}`}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">
+              {archivado
+                ? "Resultados guardados de un periodo cerrado. Solo para consulta: ya no recibe respuestas."
+                : "Se muestran solo las respuestas de este periodo. Los periodos anteriores quedan en el historial."}
+            </p>
+          </div>
+
+          {periodos.length > 1 && (
+            <label className="block">
+              <span className="block text-xs font-medium text-muted-foreground mb-1">
+                Ver periodo
+              </span>
+              <select
+                id="ver-periodo"
+                className="h-10 px-2 rounded-md border border-border bg-white text-sm"
+                value={periodoId}
+                onChange={(e) => cambiarPeriodo(e.target.value)}
+              >
+                {periodos.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nombre} — {p.activo ? "en curso" : "archivado"}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
 
         {/* KPIs */}
@@ -462,8 +522,7 @@ function AdminDashboardPage() {
         </div>
 
         {/* Filtros */}
-        <div className="ujbm-card p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <Sel label="Periodo" value={fPeriodo} onChange={setFPeriodo} options={periodoOpts} />
+        <div className="ujbm-card p-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Sel label="Escuela" value={fEscuela} onChange={setFEscuela} options={escuelasOpts} />
           <Sel
             label="Modalidad"
