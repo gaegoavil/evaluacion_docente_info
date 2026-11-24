@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { InstitutionalHeader } from "@/components/InstitutionalHeader";
 import { supabase } from "@/lib/supabase";
@@ -95,6 +95,13 @@ function AdminLoginPage() {
             >
               {loading ? "Ingresando..." : "Ingresar"}
             </button>
+            <Link
+              to="/admin/recuperar"
+              className="block text-center text-sm"
+              style={{ color: "var(--ujbm-blue)" }}
+            >
+              ¿Primera vez u olvidaste tu contraseña?
+            </Link>
           </form>
         </div>
       </main>

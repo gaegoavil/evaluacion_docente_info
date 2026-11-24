@@ -6,6 +6,7 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
@@ -36,7 +37,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
 
@@ -132,6 +133,18 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Los enlaces de los correos de Supabase (invitación o recuperación de
+  // contraseña) pueden llegar a la portada; se reenvían a /admin/nueva-clave.
+  useEffect(() => {
+    const { hash, pathname } = window.location;
+    if (
+      pathname !== "/admin/nueva-clave" &&
+      /(^|&|#)(type=(recovery|invite|signup|magiclink)|error_code=)/.test(hash)
+    ) {
+      window.location.replace(`/admin/nueva-clave${hash}`);
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

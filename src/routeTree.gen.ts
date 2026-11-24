@@ -9,15 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as GraciasRouteImport } from './routes/gracias'
-import { Route as EncuestaRouteImport } from './routes/encuesta'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as EncuestaRouteImport } from './routes/encuesta'
+import { Route as GraciasRouteImport } from './routes/gracias'
 import { Route as AdminDashboardRouteImport } from './routes/admin.dashboard'
+import { Route as AdminLoginRouteImport } from './routes/admin.login'
+import { Route as AdminNuevaClaveRouteImport } from './routes/admin.nueva-clave'
+import { Route as AdminRecuperarRouteImport } from './routes/admin.recuperar'
 
-const GraciasRoute = GraciasRouteImport.update({
-  id: '/gracias',
-  path: '/gracias',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EncuestaRoute = EncuestaRouteImport.update({
@@ -25,9 +27,14 @@ const EncuestaRoute = EncuestaRouteImport.update({
   path: '/encuesta',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const GraciasRoute = GraciasRouteImport.update({
+  id: '/gracias',
+  path: '/gracias',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/admin/dashboard',
+  path: '/admin/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminLoginRoute = AdminLoginRouteImport.update({
@@ -35,9 +42,14 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
-  id: '/admin/dashboard',
-  path: '/admin/dashboard',
+const AdminNuevaClaveRoute = AdminNuevaClaveRouteImport.update({
+  id: '/admin/nueva-clave',
+  path: '/admin/nueva-clave',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRecuperarRoute = AdminRecuperarRouteImport.update({
+  id: '/admin/recuperar',
+  path: '/admin/recuperar',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -47,6 +59,8 @@ export interface FileRoutesByFullPath {
   '/gracias': typeof GraciasRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/nueva-clave': typeof AdminNuevaClaveRoute
+  '/admin/recuperar': typeof AdminRecuperarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +68,8 @@ export interface FileRoutesByTo {
   '/gracias': typeof GraciasRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/nueva-clave': typeof AdminNuevaClaveRoute
+  '/admin/recuperar': typeof AdminRecuperarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +78,8 @@ export interface FileRoutesById {
   '/gracias': typeof GraciasRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/login': typeof AdminLoginRoute
+  '/admin/nueva-clave': typeof AdminNuevaClaveRoute
+  '/admin/recuperar': typeof AdminRecuperarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,8 +89,17 @@ export interface FileRouteTypes {
     | '/gracias'
     | '/admin/dashboard'
     | '/admin/login'
+    | '/admin/nueva-clave'
+    | '/admin/recuperar'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/encuesta' | '/gracias' | '/admin/dashboard' | '/admin/login'
+  to:
+    | '/'
+    | '/encuesta'
+    | '/gracias'
+    | '/admin/dashboard'
+    | '/admin/login'
+    | '/admin/nueva-clave'
+    | '/admin/recuperar'
   id:
     | '__root__'
     | '/'
@@ -80,6 +107,8 @@ export interface FileRouteTypes {
     | '/gracias'
     | '/admin/dashboard'
     | '/admin/login'
+    | '/admin/nueva-clave'
+    | '/admin/recuperar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -88,15 +117,17 @@ export interface RootRouteChildren {
   GraciasRoute: typeof GraciasRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminLoginRoute: typeof AdminLoginRoute
+  AdminNuevaClaveRoute: typeof AdminNuevaClaveRoute
+  AdminRecuperarRoute: typeof AdminRecuperarRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/gracias': {
-      id: '/gracias'
-      path: '/gracias'
-      fullPath: '/gracias'
-      preLoaderRoute: typeof GraciasRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/encuesta': {
@@ -106,11 +137,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EncuestaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/gracias': {
+      id: '/gracias'
+      path: '/gracias'
+      fullPath: '/gracias'
+      preLoaderRoute: typeof GraciasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/admin/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/login': {
@@ -120,11 +158,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/dashboard': {
-      id: '/admin/dashboard'
-      path: '/admin/dashboard'
-      fullPath: '/admin/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
+    '/admin/nueva-clave': {
+      id: '/admin/nueva-clave'
+      path: '/admin/nueva-clave'
+      fullPath: '/admin/nueva-clave'
+      preLoaderRoute: typeof AdminNuevaClaveRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/recuperar': {
+      id: '/admin/recuperar'
+      path: '/admin/recuperar'
+      fullPath: '/admin/recuperar'
+      preLoaderRoute: typeof AdminRecuperarRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -136,6 +181,8 @@ const rootRouteChildren: RootRouteChildren = {
   GraciasRoute: GraciasRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminLoginRoute: AdminLoginRoute,
+  AdminNuevaClaveRoute: AdminNuevaClaveRoute,
+  AdminRecuperarRoute: AdminRecuperarRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
